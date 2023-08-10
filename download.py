@@ -148,32 +148,73 @@ def read_file_as_space_separated_data(filepath: os.PathLike) -> Dict:
     return data
 
 
+# def download_video(video_id, download_path, resolution: int=None, video_format="mp4", log_file=None):
+#     """
+#     Download video from YouTube.
+#     :param video_id:        YouTube ID of the video.
+#     :param download_path:   Where to save the video.
+#     :param video_format:    Format to download.
+#     :param log_file:        Path to a log file for youtube-dl.
+#     :return:                Tuple: path to the downloaded video and a bool indicating success.
+
+#     Copy-pasted from https://github.com/ytdl-org/youtube-dl
+#     """
+#     # if os.path.isfile(download_path): return True # File already exists
+
+#     if log_file is None:
+#         stderr = subprocess.DEVNULL
+#     else:
+#         stderr = open(log_file, "a")
+#     video_selection = f"bestvideo[ext={video_format}]"
+#     video_selection = video_selection if resolution is None else f"{video_selection}[height={resolution}]"
+#     command = [
+#         "yt-dlp",
+#         "https://youtube.com/watch?v={}".format(video_id), "--quiet", "-f",
+#         video_selection,
+#         "--output", download_path,
+#         "--no-continue"
+#     ]
+#     print(command,"------------- ")
+#     return_code = subprocess.call(command, stderr=stderr)
+#     success = return_code == 0
+
+#     if log_file is not None:
+#         stderr.close()
+
+#     return success and os.path.isfile(download_path)
+
+
 def download_video(video_id, download_path, resolution: int=None, video_format="mp4", log_file=None):
     """
-    Download video from YouTube.
-    :param video_id:        YouTube ID of the video.
-    :param download_path:   Where to save the video.
-    :param video_format:    Format to download.
-    :param log_file:        Path to a log file for youtube-dl.
-    :return:                Tuple: path to the downloaded video and a bool indicating success.
-
+    Download video with audio from YouTube.
+    :param video_id: YouTube ID of the video.
+    :param download_path: Where to save the video.
+    :param video_format: Format to download.
+    :param log_file: Path to a log file for youtube-dl.
+    :return: Tuple: path to the downloaded video and a bool indicating success.
     Copy-pasted from https://github.com/ytdl-org/youtube-dl
     """
-    # if os.path.isfile(download_path): return True # File already exists
+    if os.path.isfile(download_path): return True # File already exists
 
     if log_file is None:
         stderr = subprocess.DEVNULL
     else:
         stderr = open(log_file, "a")
-    video_selection = f"bestvideo[ext={video_format}]"
+
+    video_selection = f"bestvideo[ext={video_format}]+bestaudio[ext=m4a]/best[ext={video_format}]"
     video_selection = video_selection if resolution is None else f"{video_selection}[height={resolution}]"
+
     command = [
-        "youtube-dl",
+        "yt-dlp",
         "https://youtube.com/watch?v={}".format(video_id), "--quiet", "-f",
         video_selection,
         "--output", download_path,
-        "--no-continue"
+        "--no-continue",
+        "--merge-output-format", video_format
     ]
+
+    print(command)
+
     return_code = subprocess.call(command, stderr=stderr)
     success = return_code == 0
 
@@ -181,7 +222,6 @@ def download_video(video_id, download_path, resolution: int=None, video_format="
         stderr.close()
 
     return success and os.path.isfile(download_path)
-
 
 def get_video_resolution(video_path: os.PathLike) -> int:
     command = ' '.join([
